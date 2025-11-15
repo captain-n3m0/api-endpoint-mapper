@@ -1,0 +1,72 @@
+{
+  "name": "api-endpoint-mapper",
+  "version": "1.0.0",
+  "description": "AI-Driven API Endpoint Mapper with advanced spider crawling and interactive visualization",
+  "keywords": [
+    "api",
+    "endpoint",
+    "mapper",
+    "crawler",
+    "spider",
+    "webassembly",
+    "security",
+    "nextjs",
+    "visualization"
+  ],
+  "author": {
+    "name": "Your Name",
+    "email": "your.email@example.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/api-endpoint-mapper.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/api-endpoint-mapper/issues"
+  },
+  "homepage": "https://github.com/your-username/api-endpoint-mapper#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "type-check": "tsc --noEmit",
+    "test": "echo \"No tests yet\" && exit 0",
+    "build:wasm": "cd wasm && npm run build"
+  },
+  "dependencies": {
+    "next": "16.0.3",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "typescript": "^5",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "tailwindcss": "^3.4.1",
+    "eslint": "^8",
+    "eslint-config-next": "16.0.3",
+    "react-force-graph": "^1.44.4",
+    "puppeteer": "^23.10.4",
+    "cheerio": "^1.0.0",
+    "axios": "^1.7.9",
+    "rate-limiter-flexible": "^5.0.3",
+    "js-yaml": "^4.1.0",
+    "@types/puppeteer": "^5.4.7",
+    "@types/cheerio": "^0.22.35",
+    "lucide-react": "^0.462.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.5.4",
+    "react-hot-toast": "^2.4.1",
+    "zustand": "^5.0.2",
+    "framer-motion": "^11.15.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "16.0.3"
+  }
+}
