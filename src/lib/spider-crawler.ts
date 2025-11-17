@@ -1,6 +1,7 @@
 import puppeteer, { Browser, Page } from 'puppeteer';
 import * as cheerio from 'cheerio';
 import axios from 'axios';
+import chromium from '@sparticuz/chromium';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
 import PatternMatcher from './pattern-matcher';
 import { getWASMPatternMatcher } from './wasm-pattern-matcher';
@@ -61,22 +62,33 @@ export class SpiderCrawler {
   // BEAST MODE: Enhanced browser initialization
   async initialize(): Promise<void> {
     if (this.config.enableJavaScript && !this.browser) {
-      this.browser = await puppeteer.launch({
-        headless: true,
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-web-security',  // BEAST MODE: Bypass CORS for API discovery
-          '--disable-features=VizDisplayCompositor',
-          '--disable-background-timer-throttling',
-          '--disable-backgrounding-occluded-windows',
-          '--disable-renderer-backgrounding',
-          '--enable-automation',
-          '--no-default-browser-check',
-          '--no-first-run'
-        ],
-      });
+      try {
+        // Use serverless-friendly chromium in production, local puppeteer in development
+        const isProduction = process.env.NODE_ENV === 'production';
+        
+        this.browser = await puppeteer.launch({
+          headless: true,
+          executablePath: isProduction ? await chromium.executablePath() : process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+          args: isProduction ? chromium.args : [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-web-security',  // BEAST MODE: Bypass CORS for API discovery
+            '--disable-features=VizDisplayCompositor',
+            '--disable-background-timer-throttling',
+            '--disable-backgrounding-occluded-windows',
+            '--disable-renderer-backgrounding',
+            '--enable-automation',
+            '--no-default-browser-check',
+            '--no-first-run',
+            '--single-process', // Important for serverless
+            '--no-zygote' // Important for serverless
+          ],
+        });
+      } catch (error) {
+        console.warn('Failed to initialize Puppeteer, falling back to non-JS mode:', error);
+        this.config.enableJavaScript = false;
+      }
     }
   }
 
@@ -993,7 +1005,12 @@ export class SpiderCrawler {
   private async fetchPageContent(url: string): Promise<string | null> {
     try {
       if (this.config.enableJavaScript && this.browser) {
-        return await this.fetchWithPuppeteer(url);
+        try {
+          return await this.fetchWithPuppeteer(url);
+        } catch (puppeteerError) {
+          console.warn(`Puppeteer failed for ${url}, falling back to Axios:`, puppeteerError);
+          return await this.fetchWithAxios(url);
+        }
       } else {
         return await this.fetchWithAxios(url);
       }
@@ -1358,9 +1375,12 @@ export class SpiderCrawler {
   private async analyzeBrowserJavaScript(url: string): Promise<void> {
     let browser;
     try {
+      const isProduction = process.env.NODE_ENV === 'production';
+      
       browser = await puppeteer.launch({
         headless: true,
-        args: [
+        executablePath: isProduction ? await chromium.executablePath() : undefined,
+        args: isProduction ? chromium.args : [
           '--no-sandbox',
           '--disable-setuid-sandbox',
           '--disable-dev-shm-usage',
