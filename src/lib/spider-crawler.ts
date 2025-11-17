@@ -65,7 +65,7 @@ export class SpiderCrawler {
       try {
         // Use serverless-friendly chromium in production, local puppeteer in development
         const isProduction = process.env.NODE_ENV === 'production';
-        
+
         this.browser = await puppeteer.launch({
           headless: true,
           executablePath: isProduction ? await chromium.executablePath() : process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
@@ -130,7 +130,7 @@ export class SpiderCrawler {
       });
 
       // ULTRA BEAST MODE: Multiple discovery techniques simultaneously + AI prediction
-      await Promise.all([
+      const discoveryResults = await Promise.allSettled([
         this.discoverFromSitemap(baseUrl),
         this.discoverFromRobotsTxt(baseUrl),
         this.discoverFromWellKnownEndpoints(baseUrl),
@@ -144,6 +144,12 @@ export class SpiderCrawler {
         this.discoverMobileAPIEndpoints(baseUrl),
         this.discoverThirdPartyIntegrations(baseUrl),
       ]);
+
+      // Log any failed discovery methods but don't let them block the crawl
+      const failedMethods = discoveryResults.filter(result => result.status === 'rejected');
+      if (failedMethods.length > 0) {
+        console.warn(`${failedMethods.length} discovery methods failed, continuing crawl...`);
+      }
 
       // AI-powered endpoint prediction
       await this.predictEndpointsWithAI(baseUrl);
@@ -522,8 +528,12 @@ export class SpiderCrawler {
     try {
       // Detect technology stack from headers and response patterns
       const response = await axios.get(baseUrl, {
-        timeout: 5000,
-        maxRedirects: 3
+        timeout: 15000,
+        maxRedirects: 5,
+        validateStatus: (status) => status < 500,
+        headers: {
+          'User-Agent': this.config.userAgent,
+        }
       });
 
       const headers = response.headers;
@@ -607,7 +617,11 @@ export class SpiderCrawler {
   // ULTRA BEAST MODE: Security headers analysis for API discovery
   private async discoverFromSecurityHeaders(baseUrl: string): Promise<void> {
     try {
-      const response = await axios.head(baseUrl, { timeout: 5000 });
+      const response = await axios.head(baseUrl, { 
+        timeout: 15000, // Increased timeout
+        maxRedirects: 5,
+        validateStatus: (status) => status < 500 // Accept 4xx as valid
+      });
       const headers = response.headers;
 
       // Analyze CORS headers for API endpoints
@@ -1133,8 +1147,9 @@ export class SpiderCrawler {
       headers: {
         'User-Agent': this.config.userAgent,
       },
-      timeout: this.config.timeout,
+      timeout: this.config.timeout || 15000,
       maxRedirects: 5,
+      validateStatus: (status) => status < 500,
     });
 
     return response.data;
@@ -1376,7 +1391,7 @@ export class SpiderCrawler {
     let browser;
     try {
       const isProduction = process.env.NODE_ENV === 'production';
-      
+
       browser = await puppeteer.launch({
         headless: true,
         executablePath: isProduction ? await chromium.executablePath() : undefined,
