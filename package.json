@@ -9,7 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@sparticuz/chromium": "^141.0.0",
     "@types/cheerio": "^0.22.35",
     "@types/puppeteer": "^5.4.7",
     "axios": "^1.13.2",

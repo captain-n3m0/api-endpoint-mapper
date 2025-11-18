@@ -1,7 +1,6 @@
 import puppeteer, { Browser, Page } from 'puppeteer';
 import * as cheerio from 'cheerio';
 import axios from 'axios';
-import chromium from '@sparticuz/chromium';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
 import PatternMatcher from './pattern-matcher';
 import { getWASMPatternMatcher } from './wasm-pattern-matcher';
@@ -37,6 +36,9 @@ export class SpiderCrawler {
   };
 
   constructor(config: Partial<ScannerConfig> = {}) {
+    // Disable JavaScript in serverless environments by default to avoid Puppeteer issues
+    const isServerless = process.env.VERCEL === '1' || process.env.AWS_LAMBDA_FUNCTION_NAME;
+    
     this.config = {
       maxDepth: 8,           // ULTRA DEEP crawling
       maxPages: 2000,        // MASSIVE page coverage
@@ -44,7 +46,7 @@ export class SpiderCrawler {
       includeExternalLinks: true, // Follow external API links
       crawlDelay: 100,       // HYPER SPEED - 10 requests per second
       userAgent: 'Mozilla/5.0 (compatible; API-Endpoint-Mapper/3.0; Beast-Mode-Crawler)',
-      enableJavaScript: true,
+      enableJavaScript: isServerless ? false : true, // Disable JS in serverless by default
       timeout: 10000,        // Ultra fast timeout
       ...config,
     };
@@ -65,25 +67,34 @@ export class SpiderCrawler {
       try {
         // Use serverless-friendly chromium in production, local puppeteer in development
         const isProduction = process.env.NODE_ENV === 'production';
+        const isVercel = process.env.VERCEL === '1';
+
+        let executablePath = undefined;
+        let args = [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-web-security',  // BEAST MODE: Bypass CORS for API discovery
+          '--disable-features=VizDisplayCompositor',
+          '--disable-background-timer-throttling',
+          '--disable-backgrounding-occluded-windows',
+          '--disable-renderer-backgrounding',
+          '--enable-automation',
+          '--no-default-browser-check',
+          '--no-first-run',
+          '--single-process', // Important for serverless
+          '--no-zygote' // Important for serverless
+        ];
+
+        // Keep using system browser or undefined in production
+        if (!isProduction && !isVercel) {
+          executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || undefined;
+        }
 
         this.browser = await puppeteer.launch({
           headless: true,
-          executablePath: isProduction ? await chromium.executablePath() : process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-          args: isProduction ? chromium.args : [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-web-security',  // BEAST MODE: Bypass CORS for API discovery
-            '--disable-features=VizDisplayCompositor',
-            '--disable-background-timer-throttling',
-            '--disable-backgrounding-occluded-windows',
-            '--disable-renderer-backgrounding',
-            '--enable-automation',
-            '--no-default-browser-check',
-            '--no-first-run',
-            '--single-process', // Important for serverless
-            '--no-zygote' // Important for serverless
-          ],
+          executablePath,
+          args,
         });
       } catch (error) {
         console.warn('Failed to initialize Puppeteer, falling back to non-JS mode:', error);
@@ -1391,25 +1402,30 @@ export class SpiderCrawler {
     let browser;
     try {
       const isProduction = process.env.NODE_ENV === 'production';
-
+      const isVercel = process.env.VERCEL === '1';
+      
+      let executablePath;
+      let args;
+      
+      executablePath = undefined;
+      args = [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process',
+        '--disable-gpu',
+        '--disable-web-security',
+        '--disable-features=site-per-process'
+      ];
+      
       browser = await puppeteer.launch({
         headless: true,
-        executablePath: isProduction ? await chromium.executablePath() : undefined,
-        args: isProduction ? chromium.args : [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--no-zygote',
-          '--single-process',
-          '--disable-gpu',
-          '--disable-web-security',
-          '--disable-features=site-per-process'
-        ]
-      });
-
-      const page = await browser.newPage();
+        executablePath,
+        args
+      });      const page = await browser.newPage();
 
       // Set stealth headers
       await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
