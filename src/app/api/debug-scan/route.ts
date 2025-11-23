@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
   try {
     console.log('Debug scan endpoint hit');
-    
+
     const { domain, config } = await request.json();
     console.log('Received:', { domain, config });
 
@@ -16,9 +16,9 @@ export async function POST(request: NextRequest) {
 
     // Just return success for now to test the flow
     const sessionId = `debug_${Date.now()}`;
-    
+
     console.log('Returning sessionId:', sessionId);
-    
+
     return NextResponse.json({
       sessionId,
       message: 'Debug scan started',

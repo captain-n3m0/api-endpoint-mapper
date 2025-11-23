@@ -36,18 +36,18 @@ export class SpiderCrawler {
   };
 
   constructor(config: Partial<ScannerConfig> = {}) {
-    // Disable JavaScript in serverless environments by default to avoid Puppeteer issues
+    // Detect serverless environments and optimize accordingly
     const isServerless = process.env.VERCEL === '1' || process.env.AWS_LAMBDA_FUNCTION_NAME;
-    
+
     this.config = {
-      maxDepth: 8,           // ULTRA DEEP crawling
-      maxPages: 2000,        // MASSIVE page coverage
-      respectRobots: false,  // IGNORE robots.txt for aggressive crawling
-      includeExternalLinks: true, // Follow external API links
-      crawlDelay: 100,       // HYPER SPEED - 10 requests per second
-      userAgent: 'Mozilla/5.0 (compatible; API-Endpoint-Mapper/3.0; Beast-Mode-Crawler)',
-      enableJavaScript: isServerless ? false : true, // Disable JS in serverless by default
-      timeout: 10000,        // Ultra fast timeout
+      maxDepth: isServerless ? 2 : 8,           // Shallow crawling for serverless
+      maxPages: isServerless ? 20 : 2000,       // Much fewer pages for serverless
+      respectRobots: false,
+      includeExternalLinks: false, // Disable external links in serverless
+      crawlDelay: isServerless ? 50 : 100,      // Faster crawling in serverless
+      userAgent: 'Mozilla/5.0 (compatible; API-Endpoint-Mapper/3.0; Serverless-Scanner)',
+      enableJavaScript: false, // Always disable JS for reliability
+      timeout: isServerless ? 5000 : 10000,    // Shorter timeout for serverless
       ...config,
     };
 
@@ -140,8 +140,17 @@ export class SpiderCrawler {
         message: 'Starting to crawl pages...',
       });
 
-      // ULTRA BEAST MODE: Multiple discovery techniques simultaneously + AI prediction
-      const discoveryResults = await Promise.allSettled([
+      // Streamlined discovery for serverless environments
+      const isServerless = process.env.VERCEL === '1' || process.env.AWS_LAMBDA_FUNCTION_NAME;
+
+      const discoveryMethods = isServerless ? [
+        // Essential discovery methods for serverless
+        this.discoverFromWellKnownEndpoints(baseUrl),
+        this.discoverFromCommonPaths(baseUrl),
+        this.discoverFromTechnologyFingerprinting(baseUrl),
+        this.discoverThirdPartyIntegrations(baseUrl),
+      ] : [
+        // Full discovery for local/server environments
         this.discoverFromSitemap(baseUrl),
         this.discoverFromRobotsTxt(baseUrl),
         this.discoverFromWellKnownEndpoints(baseUrl),
@@ -154,7 +163,9 @@ export class SpiderCrawler {
         this.discoverWebSocketEndpoints(baseUrl),
         this.discoverMobileAPIEndpoints(baseUrl),
         this.discoverThirdPartyIntegrations(baseUrl),
-      ]);
+      ];
+
+      const discoveryResults = await Promise.allSettled(discoveryMethods);
 
       // Log any failed discovery methods but don't let them block the crawl
       const failedMethods = discoveryResults.filter(result => result.status === 'rejected');
@@ -162,19 +173,24 @@ export class SpiderCrawler {
         console.warn(`${failedMethods.length} discovery methods failed, continuing crawl...`);
       }
 
-      // AI-powered endpoint prediction
-      await this.predictEndpointsWithAI(baseUrl);
-      await this.predictAIEndpoints(baseUrl);
+      // Conditional heavy operations based on environment
+      const serverlessEnv = process.env.VERCEL === '1' || process.env.AWS_LAMBDA_FUNCTION_NAME;
 
-      // Start hyper parallel aggressive crawling
+      if (!serverlessEnv) {
+        // Full analysis for non-serverless environments
+        await this.predictEndpointsWithAI(baseUrl);
+        await this.predictAIEndpoints(baseUrl);
+      }
+
+      // Start crawling (simplified for serverless)
       this.crawlQueue.push(baseUrl);
       await this.crawlParallel();
 
-      // AGGRESSIVE JavaScript + WebAssembly analysis
-      await this.analyzeJavaScriptFiles();
-
-      // Deep packet inspection simulation
-      await this.simulateAPICallsFromPatterns();
+      if (!serverlessEnv) {
+        // Skip heavy analysis in serverless
+        await this.analyzeJavaScriptFiles();
+        await this.simulateAPICallsFromPatterns();
+      }
 
       this.updateProgress({
         stage: 'processing',
@@ -628,7 +644,7 @@ export class SpiderCrawler {
   // ULTRA BEAST MODE: Security headers analysis for API discovery
   private async discoverFromSecurityHeaders(baseUrl: string): Promise<void> {
     try {
-      const response = await axios.head(baseUrl, { 
+      const response = await axios.head(baseUrl, {
         timeout: 15000, // Increased timeout
         maxRedirects: 5,
         validateStatus: (status) => status < 500 // Accept 4xx as valid
@@ -1403,10 +1419,10 @@ export class SpiderCrawler {
     try {
       const isProduction = process.env.NODE_ENV === 'production';
       const isVercel = process.env.VERCEL === '1';
-      
+
       let executablePath;
       let args;
-      
+
       executablePath = undefined;
       args = [
         '--no-sandbox',
@@ -1420,7 +1436,7 @@ export class SpiderCrawler {
         '--disable-web-security',
         '--disable-features=site-per-process'
       ];
-      
+
       browser = await puppeteer.launch({
         headless: true,
         executablePath,
