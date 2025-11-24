@@ -75,11 +75,11 @@ export default function Home() {
         </section>
 
         {/* Results Section */}
-        <section className="grid lg:grid-cols-2 gap-8">
-          <div>
+        <section className="grid lg:grid-cols-2 gap-8 border border-white/20 rounded-lg p-6">
+          <div className="border-r border-white/20 lg:pr-4">
             <InteractiveGraph />
           </div>
-          <div>
+          <div className="lg:pl-4">
             <ResultsDashboard />
           </div>
         </section>
@@ -89,9 +89,9 @@ export default function Home() {
       <footer className="border-t border-gray-700 bg-slate-900/80 backdrop-blur-sm mt-16">
         <div className="container mx-auto px-4 py-8">
           <div className="grid md:grid-cols-3 gap-8">
-            <div>
+            <div className="border-r border-white/20 md:pr-8">
               <h3 className="font-semibold text-white mb-4">Features</h3>
-              <ul className="space-y-2 text-sm text-gray-300">
+              <ul className="space-y-2 text-sm text-white">
                 <li>• Advanced spider crawling</li>
                 <li>• WebAssembly pattern matching</li>
                 <li>• Security vulnerability analysis</li>
@@ -100,9 +100,9 @@ export default function Home() {
               </ul>
             </div>
 
-            <div>
+            <div className="border-r border-white/20 md:pr-8">
               <h3 className="font-semibold text-white mb-4">Technology</h3>
-              <ul className="space-y-2 text-sm text-gray-300">
+              <ul className="space-y-2 text-sm text-white">
                 <li>• Next.js 14 with App Router</li>
                 <li>• TypeScript & Tailwind CSS</li>
                 <li>• Puppeteer & Cheerio</li>
@@ -113,7 +113,7 @@ export default function Home() {
 
             <div>
               <h3 className="font-semibold text-white mb-4">Security</h3>
-              <ul className="space-y-2 text-sm text-gray-300">
+              <ul className="space-y-2 text-sm text-white">
                 <li>• Respects robots.txt</li>
                 <li>• Rate limiting protection</li>
                 <li>• No data storage</li>

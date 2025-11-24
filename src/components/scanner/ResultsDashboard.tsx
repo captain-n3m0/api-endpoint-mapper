@@ -213,21 +213,21 @@ export function ResultsDashboard() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{results.endpoints.length}</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 border border-white/20 p-4 rounded-lg">
+            <div className="text-center border-r border-white/20 last:border-r-0 pr-4 last:pr-0">
+              <div className="text-3xl font-bold text-white">{results.endpoints.length}</div>
               <div className="text-sm text-white">Total Endpoints</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-green-600 dark:text-green-400">{results.totalPages}</div>
+            <div className="text-center border-r border-white/20 last:border-r-0 pr-4 last:pr-0">
+              <div className="text-3xl font-bold text-white">{results.totalPages}</div>
               <div className="text-sm text-white">Pages Scanned</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">{results.stats.uniqueDomains}</div>
+            <div className="text-center border-r border-white/20 last:border-r-0 pr-4 last:pr-0">
+              <div className="text-3xl font-bold text-white">{results.stats.uniqueDomains}</div>
               <div className="text-sm text-white">Unique Domains</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">
+              <div className="text-3xl font-bold text-white">
                 {Math.round(results.totalTime / 1000)}s
               </div>
               <div className="text-sm text-white">Scan Time</div>
@@ -282,9 +282,9 @@ export function ResultsDashboard() {
           </div>
 
           {showFilters && stats && (
-            <div className="border border-border rounded-lg p-4 space-y-4 bg-muted">
+            <div className="border border-white/20 rounded-lg p-4 space-y-4 bg-slate-800/50">
               <div>
-                <h4 className="font-medium mb-2 text-foreground">HTTP Methods</h4>
+                <h4 className="font-medium mb-2 text-white">HTTP Methods</h4>
                 <div className="flex flex-wrap gap-2">
                   {Array.from(stats.methods.entries()).map(([method, count]) => (
                     <Button
@@ -301,7 +301,7 @@ export function ResultsDashboard() {
               </div>
 
               <div>
-                <h4 className="font-medium mb-2 text-foreground">Sources</h4>
+                <h4 className="font-medium mb-2 text-white">Sources</h4>
                 <div className="flex flex-wrap gap-2">
                   {Array.from(stats.sources.entries()).map(([source, count]) => (
                     <Button
@@ -317,7 +317,7 @@ export function ResultsDashboard() {
               </div>
 
               <div>
-                <h4 className="font-medium mb-2 text-foreground">Security Risk</h4>
+                <h4 className="font-medium mb-2 text-white">Security Risk</h4>
                 <div className="flex flex-wrap gap-2">
                   {Array.from(stats.securities.entries()).map(([security, count]) => (
                     <Button
@@ -346,7 +346,7 @@ export function ResultsDashboard() {
               filteredEndpoints.map((endpoint) => (
                 <div
                   key={endpoint.id}
-                  className="border border-border rounded-lg p-4 hover:bg-accent hover:border-accent-foreground cursor-pointer transition-colors"
+                  className="border border-white/20 rounded-lg p-4 hover:bg-slate-800 hover:border-white/40 cursor-pointer transition-colors"
                   onClick={() => selectEndpoint(endpoint)}
                   style={{ userSelect: 'text' }}
                 >
@@ -368,7 +368,7 @@ export function ResultsDashboard() {
                       </div>
 
                       <div
-                        className="font-mono text-sm break-all mb-2 text-foreground font-medium"
+                        className="font-mono text-sm break-all mb-2 text-white font-medium"
                       >
                         {endpoint.url}
                       </div>

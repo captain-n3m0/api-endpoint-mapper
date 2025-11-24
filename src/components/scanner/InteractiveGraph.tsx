@@ -29,8 +29,8 @@ const SimpleGraph = ({ graphData, onNodeClick, zoom, onZoomChange }: {
 
   if (!graphData.nodes.length) {
     return (
-      <div className="w-full h-96 bg-muted rounded-lg flex items-center justify-center border-2 border-dashed border-border">
-        <div className="text-center text-muted-foreground">
+      <div className="w-full h-96 bg-slate-800 rounded-lg flex items-center justify-center border-2 border-dashed border-white/20">
+        <div className="text-center text-white">
           <Network className="w-12 h-12 mx-auto mb-2 opacity-50" />
           <p>No endpoints found yet</p>
           <p className="text-sm">Start a scan to visualize the API structure</p>
@@ -149,7 +149,7 @@ const SimpleGraph = ({ graphData, onNodeClick, zoom, onZoomChange }: {
   };
 
   return (
-    <div className="w-full h-96 bg-card border border-border rounded-lg overflow-hidden">
+    <div className="w-full h-96 bg-card border border-white/20 rounded-lg overflow-hidden">
       <svg
         ref={svgRef}
         id="graph-svg"
@@ -174,7 +174,7 @@ const SimpleGraph = ({ graphData, onNodeClick, zoom, onZoomChange }: {
         {/* Grid pattern for better orientation */}
         <defs>
           <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" strokeWidth="0.5"/>
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5"/>
           </pattern>
         </defs>
         <rect x={-1000} y={-1000} width={2600} height={2380} fill="url(#grid)" />
@@ -193,7 +193,7 @@ const SimpleGraph = ({ graphData, onNodeClick, zoom, onZoomChange }: {
               y1={sourceNode.y}
               x2={targetNode.x}
               y2={targetNode.y}
-              stroke="#94a3b8"
+              stroke="rgba(255,255,255,0.4)"
               strokeWidth="2"
               opacity={0.6}
             />
@@ -357,8 +357,8 @@ export function InteractiveGraph() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="w-full h-96 bg-muted rounded-lg flex items-center justify-center border-2 border-dashed border-border">
-            <div className="text-center text-muted-foreground">
+          <div className="w-full h-96 bg-slate-800 rounded-lg flex items-center justify-center border-2 border-dashed border-white/20">
+            <div className="text-center text-white">
               <Network className="w-12 h-12 mx-auto mb-2 opacity-50" />
               <p>No endpoints found yet</p>
               <p className="text-sm">Start a scan to visualize API structure</p>
@@ -412,9 +412,9 @@ export function InteractiveGraph() {
         />
 
         {selectedEndpoint && (
-          <div className="mt-4 p-4 bg-accent border border-accent-foreground rounded-lg">
+          <div className="mt-4 p-4 bg-slate-800/50 border border-white/20 rounded-lg">
             <div className="flex items-center justify-between mb-2">
-              <h4 className="font-medium text-foreground">Selected Endpoint</h4>
+              <h4 className="font-medium text-white">Selected Endpoint</h4>
               <Button
                 variant="ghost"
                 size="sm"
@@ -425,18 +425,18 @@ export function InteractiveGraph() {
             </div>
             <div className="space-y-2 text-sm">
               <div>
-                <span className="font-medium text-foreground">Method:</span>{' '}
+                <span className="font-medium text-white">Method:</span>{' '}
                 <Badge variant="outline">{selectedEndpoint.method}</Badge>
               </div>
               <div>
-                <span className="font-medium text-foreground">URL:</span>{' '}
-                <code className="text-xs bg-muted text-muted-foreground px-1 py-0.5 rounded">
+                <span className="font-medium text-white">URL:</span>{' '}
+                <code className="text-xs bg-slate-700 text-white px-1 py-0.5 rounded">
                   {selectedEndpoint.url}
                 </code>
               </div>
               {selectedEndpoint.parameters && selectedEndpoint.parameters.length > 0 && (
                 <div>
-                  <span className="font-medium text-foreground">Parameters:</span>{' '}
+                  <span className="font-medium text-white">Parameters:</span>{' '}
                   <div className="flex flex-wrap gap-1 mt-1">
                     {selectedEndpoint.parameters.map((param, index) => (
                       <Badge key={index} variant="secondary" className="text-xs">
@@ -447,7 +447,7 @@ export function InteractiveGraph() {
                 </div>
               )}
               <div>
-                <span className="font-medium text-foreground">Source:</span>{' '}
+                <span className="font-medium text-white">Source:</span>{' '}
                 <Badge variant="outline">{selectedEndpoint.source}</Badge>
               </div>
             </div>
