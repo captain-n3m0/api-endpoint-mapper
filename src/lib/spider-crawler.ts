@@ -37,17 +37,17 @@ export class SpiderCrawler {
 
   constructor(config: Partial<ScannerConfig> = {}) {
     // Detect serverless environments and optimize accordingly
-    const isServerless = process.env.VERCEL === '1' || process.env.AWS_LAMBDA_FUNCTION_NAME;
+    const isServerless = process.env.VERCEL === '1' || process.env.RENDER === '1' || process.env.AWS_LAMBDA_FUNCTION_NAME;
 
     this.config = {
       maxDepth: isServerless ? 2 : 8,           // Shallow crawling for serverless
-      maxPages: isServerless ? 20 : 2000,       // Much fewer pages for serverless
+      maxPages: isServerless ? 25 : 2000,       // Reasonable pages for serverless
       respectRobots: false,
       includeExternalLinks: false, // Disable external links in serverless
       crawlDelay: isServerless ? 50 : 100,      // Faster crawling in serverless
-      userAgent: 'Mozilla/5.0 (compatible; API-Endpoint-Mapper/3.0; Serverless-Scanner)',
-      enableJavaScript: false, // Always disable JS for reliability
-      timeout: isServerless ? 5000 : 10000,    // Shorter timeout for serverless
+      userAgent: 'Mozilla/5.0 (compatible; API-Endpoint-Mapper/3.0; HTTP-Scanner)',
+      enableJavaScript: false, // Always disable JS for reliability and performance
+      timeout: isServerless ? 8000 : 10000,    // Reasonable timeout for serverless
       ...config,
     };
 
@@ -63,12 +63,19 @@ export class SpiderCrawler {
 
   // BEAST MODE: Enhanced browser initialization
   async initialize(): Promise<void> {
+    // Always disable JavaScript in serverless environments for reliability and performance
+    const isServerless = process.env.VERCEL === '1' || process.env.RENDER === '1' || process.env.AWS_LAMBDA_FUNCTION_NAME;
+    
+    if (isServerless) {
+      this.config.enableJavaScript = false;
+      console.log('Serverless environment detected - using HTTP-only crawling mode');
+      return;
+    }
+
     if (this.config.enableJavaScript && !this.browser) {
       try {
-        // Use serverless-friendly chromium in production, local puppeteer in development
-        const isProduction = process.env.NODE_ENV === 'production';
-        const isVercel = process.env.VERCEL === '1';
-
+        console.log('Attempting to initialize Puppeteer for JavaScript crawling...');
+        
         let executablePath = undefined;
         let args = [
           '--no-sandbox',
@@ -86,8 +93,8 @@ export class SpiderCrawler {
           '--no-zygote' // Important for serverless
         ];
 
-        // Keep using system browser or undefined in production
-        if (!isProduction && !isVercel) {
+        // Only try to use system browser in development
+        if (process.env.NODE_ENV === 'development') {
           executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || undefined;
         }
 
@@ -96,9 +103,11 @@ export class SpiderCrawler {
           executablePath,
           args,
         });
+        console.log('Puppeteer initialized successfully');
       } catch (error) {
-        console.warn('Failed to initialize Puppeteer, falling back to non-JS mode:', error);
+        console.log('Puppeteer not available - using HTTP-only crawling mode');
         this.config.enableJavaScript = false;
+        this.browser = null;
       }
     }
   }
@@ -141,7 +150,7 @@ export class SpiderCrawler {
       });
 
       // Streamlined discovery for serverless environments
-      const isServerless = process.env.VERCEL === '1' || process.env.AWS_LAMBDA_FUNCTION_NAME;
+      const isServerless = process.env.VERCEL === '1' || process.env.RENDER === '1' || process.env.AWS_LAMBDA_FUNCTION_NAME;
 
       const discoveryMethods = isServerless ? [
         // Essential discovery methods for serverless

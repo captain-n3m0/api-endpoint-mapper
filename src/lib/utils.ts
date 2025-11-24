@@ -82,3 +82,28 @@ export function debounce<T extends (...args: any[]) => any>(
     timeout = setTimeout(() => func(...args), wait);
   };
 }
+
+// Utility function to get the proper base URL for API calls
+export function getBaseUrl(request?: { headers: { get(name: string): string | null } }): string {
+  // In development, always use localhost
+  if (process.env.NODE_ENV === 'development') {
+    return 'http://localhost:3000';
+  }
+
+  // Try to get from environment variable first
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL;
+  }
+
+  // If we have request headers, construct from them
+  if (request?.headers) {
+    const protocol = request.headers.get('x-forwarded-proto') || 'https';
+    const host = request.headers.get('host') || request.headers.get('x-forwarded-host');
+    if (host) {
+      return `${protocol}://${host}`;
+    }
+  }
+
+  // Fallback - this shouldn't happen in production
+  return typeof window !== 'undefined' ? window.location.origin : 'https://localhost:3000';
+}

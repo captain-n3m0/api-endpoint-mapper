@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SpiderCrawler } from '@/lib/spider-crawler';
-import { isValidDomain } from '@/lib/utils';
+import { isValidDomain, getBaseUrl } from '@/lib/utils';
 import type { ScanProgress } from '@/lib/types';
 
 // Store active crawling sessions
@@ -35,7 +35,8 @@ export async function POST(request: NextRequest) {
     // Progress callback to update the progress API
     const progressCallback = async (progress: ScanProgress) => {
       try {
-        await fetch(`${process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : ''}/api/progress`, {
+        const baseUrl = getBaseUrl(request);
+        await fetch(`${baseUrl}/api/progress`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -46,7 +47,10 @@ export async function POST(request: NextRequest) {
           }),
         });
       } catch (error) {
-        console.error('Failed to update progress:', error);
+        // Silently log progress errors to avoid spam in production
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Progress update failed:', error instanceof Error ? error.message : String(error));
+        }
       }
     };
 
@@ -55,7 +59,8 @@ export async function POST(request: NextRequest) {
       // Store the crawl results when completed
       console.log(`Crawl completed for session ${sessionId}, storing results...`, result);
       try {
-        const response = await fetch(`${process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : ''}/api/results`, {
+        const baseUrl = getBaseUrl(request);
+        const response = await fetch(`${baseUrl}/api/results`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
