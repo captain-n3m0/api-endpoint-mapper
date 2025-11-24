@@ -65,7 +65,7 @@ export class SpiderCrawler {
   async initialize(): Promise<void> {
     // Always disable JavaScript in serverless environments for reliability and performance
     const isServerless = process.env.VERCEL === '1' || process.env.RENDER === '1' || process.env.AWS_LAMBDA_FUNCTION_NAME;
-    
+
     if (isServerless) {
       this.config.enableJavaScript = false;
       console.log('Serverless environment detected - using HTTP-only crawling mode');
@@ -75,7 +75,7 @@ export class SpiderCrawler {
     if (this.config.enableJavaScript && !this.browser) {
       try {
         console.log('Attempting to initialize Puppeteer for JavaScript crawling...');
-        
+
         let executablePath = undefined;
         let args = [
           '--no-sandbox',
